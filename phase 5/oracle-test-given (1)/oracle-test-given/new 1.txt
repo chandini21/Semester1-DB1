@@ -1,0 +1,423 @@
+package Jdbc;
+import java.awt.BorderLayout;
+import java.awt.EventQueue;
+
+import javax.swing.JFrame;
+import javax.swing.JPanel;
+import javax.swing.border.EmptyBorder;
+import javax.swing.JButton;
+import javax.swing.SwingConstants;
+import javax.swing.JTable;
+import javax.swing.border.EtchedBorder;
+import java.awt.event.ActionListener;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.awt.event.ActionEvent;
+import java.awt.FlowLayout;
+import javax.swing.BoxLayout;
+import java.awt.GridLayout;
+import java.awt.GridBagLayout;
+import java.awt.GridBagConstraints;
+import java.awt.Insets;
+import javax.swing.JLabel;
+import java.awt.CardLayout;
+//import com.jgoodies.forms.layout.FormLayout;
+//import com.jgoodies.forms.layout.ColumnSpec;
+//import com.jgoodies.forms.layout.FormSpecs;
+//import com.jgoodies.forms.layout.RowSpec;
+//import net.miginfocom.swing.MigLayout;
+import javax.swing.GroupLayout;
+import javax.swing.GroupLayout.Alignment;
+import javax.swing.LayoutStyle.ComponentPlacement;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
+import javax.swing.DropMode;
+import javax.swing.JScrollBar;
+
+public class ShowTables extends JFrame {
+
+	private JPanel contentPane;
+	private static Connection connection;
+	private JTextArea results;
+
+	/**
+	 * Launch the application.
+	 */
+	public static void main(String[] args) {
+		EventQueue.invokeLater(new Runnable() {
+			public void run() {
+				try {
+					if(testConnection()){
+						if(testDriver()){
+							ShowTables frame = new ShowTables();
+							frame.setVisible(true);
+						}
+					}
+					
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		});
+	}
+
+	/**
+	 * Create the frame.
+	 */
+	public ShowTables() {
+		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		setBounds(100, 100, 1025, 650);
+		contentPane = new JPanel();
+		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
+		setContentPane(contentPane);
+		
+		JPanel panel = new JPanel();
+		JPanel select = new JPanel();
+		select.setLayout(new FlowLayout(FlowLayout.CENTER, 5, 5));
+		
+		JButton btnRestaurant = new JButton("Restaurant Details");
+		btnRestaurant.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				if(testDriver()){
+					if(testConnection()){
+						getRestaurantDetails();
+					}
+				}
+			}
+		});
+		select.add(btnRestaurant);
+		
+		JButton btnMenuItem = new JButton("Menu Details");
+		btnMenuItem.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				getCustomerDetails();
+			}
+		});
+		select.add(btnMenuItem);
+		
+		JButton btnCustomer = new JButton("Customer Details");
+		btnCustomer.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				getCustomerDetails();
+			}
+		});
+		select.add(btnCustomer);
+		
+		JButton btnDeliveryAgent = new JButton("Delivery Agents");
+		btnDeliveryAgent.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				getDeliveryAgent();
+			}
+		});
+		select.add(btnDeliveryAgent);
+		
+		JButton btnWorksFor = new JButton("Works For");
+		btnWorksFor.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				getWorksFor();
+			}
+		});
+		select.add(btnWorksFor);
+		
+		JButton btnRestaurantTimes = new JButton("Restaurant Times");
+		btnRestaurantTimes.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				if(testDriver()){
+					if(testConnection()){
+						getRestaurantTimes();
+					}
+				}
+			}
+		});
+		select.add(btnRestaurantTimes);
+		
+		JButton btnOrders = new JButton("Orders Details");
+		btnOrders.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				getOrders();
+			}
+		});
+		select.add(btnOrders);
+		
+		JButton btnDeliveries = new JButton("Deliveries");
+		btnDeliveries.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				getDeliveries();
+			}
+		});
+		select.add(btnDeliveries);
+		
+		JPanel Result = new JPanel();
+		GroupLayout gl_contentPane = new GroupLayout(contentPane);
+		gl_contentPane.setHorizontalGroup(
+			gl_contentPane.createParallelGroup(Alignment.LEADING)
+				.addGroup(gl_contentPane.createSequentialGroup()
+					.addGroup(gl_contentPane.createParallelGroup(Alignment.TRAILING)
+						.addGroup(gl_contentPane.createSequentialGroup()
+							.addContainerGap()
+							.addComponent(Result, GroupLayout.DEFAULT_SIZE, 919, Short.MAX_VALUE))
+						.addGroup(Alignment.LEADING, gl_contentPane.createSequentialGroup()
+							.addGap(17)
+							.addGroup(gl_contentPane.createParallelGroup(Alignment.LEADING)
+								.addComponent(select, GroupLayout.PREFERRED_SIZE, 914, GroupLayout.PREFERRED_SIZE)
+								.addComponent(panel, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))))
+					.addContainerGap())
+		);
+		gl_contentPane.setVerticalGroup(
+			gl_contentPane.createParallelGroup(Alignment.LEADING)
+				.addGroup(gl_contentPane.createSequentialGroup()
+					.addGap(7)
+					.addComponent(panel, GroupLayout.PREFERRED_SIZE, 35, GroupLayout.PREFERRED_SIZE)
+					.addPreferredGap(ComponentPlacement.RELATED)
+					.addComponent(select, GroupLayout.PREFERRED_SIZE, 84, GroupLayout.PREFERRED_SIZE)
+					.addPreferredGap(ComponentPlacement.RELATED)
+					.addComponent(Result, GroupLayout.PREFERRED_SIZE, 318, GroupLayout.PREFERRED_SIZE)
+					.addGap(7))
+		);
+		Result.setLayout(new BoxLayout(Result, BoxLayout.X_AXIS));
+		
+		JScrollPane scrollPane = new JScrollPane();
+		Result.add(scrollPane);
+		
+		results = new JTextArea();
+		scrollPane.setViewportView(results);
+		
+		JLabel lblSelectATable = new JLabel("Select a table for the contents");
+		lblSelectATable.setLabelFor(select);
+		lblSelectATable.setVerticalAlignment(SwingConstants.TOP);
+		panel.add(lblSelectATable);
+		contentPane.setLayout(gl_contentPane);
+	}
+	
+	
+	private void getRestaurantDetails() {
+		try {
+	          Statement stmt = connection.createStatement();
+		       ResultSet rs = stmt.executeQuery("select * from cxa9674.F18_2_Restaurant");
+		       results.setEditable(true);
+		       results.setText("Restaurant_ID\tName\t\tLocality\tZip_Code\tCity\tCommision_offered\n");
+		       while (rs.next())
+		    	   results.append(rs.getString("REST_ID")+"\t"
+		        		 		+rs.getString("NAME")+"\t"
+		        		 		+rs.getString("LOCALITY")+"\t"
+		        		 		+rs.getString("ZIP_CODE")+"\t"
+		        		 		+rs.getString("CITY")+"\t"
+		        		 		+rs.getString("BASE_DELIVERY_CHARGE")+"\t"
+		        		 		+rs.getString("COMMISION_OFFERED")+"\n");
+		       rs.close();
+		       stmt.close();
+		       results.setEditable(false);
+	      }
+	      catch (SQLException e) {
+				e.printStackTrace();
+				return;
+			}    
+	}
+	
+	private void getMenuItemDetails() {
+		try {
+	          Statement stmt = connection.createStatement();
+		       ResultSet rs = stmt.executeQuery("select * from cxa9674.F18_2_Menu_Item");
+		       results.setEditable(true);
+		       results.setText("Item_ID\tItem_Name\tItem_Category\tCuisine\tDietary_Preference\tPrice\tRestaurant_ID\n");
+		       while (rs.next())
+		         results.append(rs.getString("ITEM_ID")+"\t"
+		        		 		+rs.getString("ITEM_NAME")+"\t"
+		        		 		+rs.getString("ITEM_CATEGORY")+"\t"
+		        		 		+rs.getString("CUISINE")+"\t"
+		        		 		+rs.getString("DIETARY_PREFERENCE")+"\t"
+		        		 		+rs.getString("PRICE")+"\t"
+		        		 		+rs.getString("REST_ID")+"\n");
+		       rs.close();
+		       stmt.close();
+		       results.setEditable(false);
+	      }
+	      catch (SQLException e) {
+				e.printStackTrace();
+				return;
+			}    
+	}
+	
+	private void getWorksFor() {
+		
+		try {
+	          Statement stmt = connection.createStatement();
+		       ResultSet rs = stmt.executeQuery("select * from cxa9674.F18_2_Works_For");
+		       results.setEditable(true);
+		       results.setText("Restaurant_ID\t Delivery_Agent_ID\n");
+		       while (rs.next())
+		         results.append(rs.getString("REST_ID")+"\t |"
+		        		 		+rs.getString("DA_ID")+"\t \n");
+		       rs.close();
+		       stmt.close();
+		       results.setEditable(false);
+	      }
+	      catch (SQLException e) {
+				e.printStackTrace();
+				return;
+			}    
+		
+	}
+	
+	private void getRestaurantTimes() {
+		try {
+	          Statement stmt = connection.createStatement();
+		       ResultSet rs = stmt.executeQuery("select * from sxs2267.F18_18_EMPLOYEE");
+		       results.setEditable(true);
+		       results.setText("Open_Time\tClose_Time\tRestaurant_ID\n");
+		       while (rs.next())
+		         results.append(rs.getString("OPEN_TIME")+"\t"
+		        		 		+rs.getString("CLOSE_TIME")+"\t"
+		        		 		+rs.getString("RESTAURANT_ID")+"\t\n");
+		       rs.close();
+		       stmt.close();
+		       results.setEditable(false);
+	      }
+	      catch (SQLException e) {
+				e.printStackTrace();
+				return;
+			}    
+		
+		
+	}
+	
+	
+	private void getCustomerDetails() {
+		try {
+	          Statement stmt = connection.createStatement();
+		       ResultSet rs = stmt.executeQuery("select * from cxa9674.F18_2_Customer");
+		       results.setEditable(true);
+		       results.setText("Customer_ID\tName\tPhone_Number\tZip_Code\tCity\tLocality\n");
+		       while (rs.next())
+		         results.append(rs.getString("CUSTOMER_ID")+"\t"
+		        		 		+rs.getString("NAME")+"\t"
+		        		 		+rs.getString("PHONE_NUMBER")+"\t"
+		        		 		+rs.getString("ZIP_CODE")+"\t"
+		        		 		+rs.getString("CITY")+"\t"
+		        		 		+rs.getString("LOCALITY")+"\n");
+		       rs.close();
+		       stmt.close();
+		       results.setEditable(false);
+//		       resultFrame.setVisible(true);
+//	          connection.close();
+	      }
+	      catch (SQLException e) {
+				e.printStackTrace();
+				return;
+			}    
+	}
+	
+	private void getDeliveryAgent() {
+		try {
+	          Statement stmt = connection.createStatement();
+		       ResultSet rs = stmt.executeQuery("select * from cxa9674.F18_2_Delievery_Agent");
+		       results.setEditable(true);
+		       results.setText("DeliveryAgent_ID\tFirst_Name\tLast_Name\tMobile_Number\tZip_Code\tDOB\t Work_Location\tShift_Opted\n");
+		       while (rs.next())
+		         results.append(rs.getString("DA_ID")+"\t"
+		        		 		+rs.getString("FIRST_NAME")+"\t"
+		        		 		+rs.getString("LAST_NAME")+"\t"
+		        		 		+rs.getString("MOBILE_NUMBER")+"\t"
+		        		 		+rs.getString("ZIP_CODE")+"\t"
+		        		 		+rs.getString("DOB")+"\t"
+		        		 		+rs.getString("WORK_LOCATION")+"\t"
+		        		 		+rs.getString("SHIFT_OPTED")+"\n");
+		       rs.close();
+		       stmt.close();
+		       results.setEditable(false);
+//		       resultFrame.setVisible(true);
+//	          connection.close();
+	      }
+	      catch (SQLException e) {
+				e.printStackTrace();
+				return;
+			}    
+	}
+	
+	private void getDeliveries() {
+		try {
+	          	Statement stmt = connection.createStatement();
+	          	ResultSet rs = stmt.executeQuery("select * from cxa9674.F18_2_Delivers");
+	          	results.setEditable(true);
+	          	results.setText("Restaurant_ID\tCustomer_ID\tDeliveryAgent_ID\tPickup_Time\tDA_Arrival_Time\tActual_delievery_time\n");
+		       while (rs.next())
+		         results.append(rs.getString("REST_ID")+"\t\t"
+		        		 		+rs.getString("CUSTOMER_ID")+"\t"
+		        		 		+rs.getString("DA_ID")+"\t"
+		        		 		+rs.getString("PICKUP_TIME")+"\t"
+		        		 		+rs.getString("DA_ARRIVAL_TIME")+"\t"
+		        		 		+rs.getString("ACTUAL_DELIEVERY_TIME")+"\t\n");
+		       rs.close();
+		       stmt.close();
+		       results.setEditable(false);
+//		       resultFrame.setVisible(true);
+//	          connection.close();
+	      }
+	      catch (SQLException e) {
+				e.printStackTrace();
+				return;
+			}    
+		
+		
+	}
+	private void getOrders() {
+		try {
+	          Statement stmt = connection.createStatement();
+		       ResultSet rs = stmt.executeQuery("select * from cxa9674.F18_2_Orders");
+		       results.setEditable(true);
+		       results.setText("Restaurant_ID\t Customer_ID \t Item_ID \t Order_Time \t Order_Date\tPayment_Mode\n");
+		       while (rs.next())
+		         results.append(rs.getString("REST_ID")+"\t "
+		        		 		+rs.getString("CUSTOMER_ID")+"\t "
+		        		 		+rs.getString("ITEM_ID")+"\t "
+		        		 		+rs.getString("ORDER_TIME")+"\t\t "
+		        		 		+rs.getString("ORDER_DATE")+"\t "
+		        		 		+rs.getString("PAYMENT_MODE")+"\n");
+		       rs.close();
+		       stmt.close();
+		       results.setEditable(false);
+//		       resultFrame.setVisible(true);
+//	          connection.close();
+	      }
+	      catch (SQLException e) {
+				e.printStackTrace();
+				return;
+			}    
+		
+		
+	}
+
+	private static boolean testConnection(){
+		try {
+            connection = DriverManager.getConnection(
+                        "jdbc:oracle:thin:@localhost:1533/cse1.omega.uta.edu", "cxa9674", "Apple123");
+		} catch (SQLException e) {
+				System.out.println("Connection Failed! Check output console");
+				e.printStackTrace();
+				return false;
+		}
+            
+		if (connection != null) {
+			return true;
+		} else {
+			return false;
+		}	
+
+	}
+	private static boolean testDriver(){
+		try {
+
+			Class.forName("oracle.jdbc.driver.OracleDriver");
+			return true;
+
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+			return false;
+
+		}
+	}
+}
+

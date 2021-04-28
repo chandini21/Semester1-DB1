@@ -1,0 +1,8 @@
+1. rels in Db
+2. contents of chosen rels and updates
+3. reports  
+4.dynamic sql- prepare and execute
+5. aggregates
+
+
+Again, the DDL, DML, drop scripts and ad-hoc queries need to be delivered in addition to your application code.   
